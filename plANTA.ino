@@ -122,20 +122,20 @@ void loop() {
     valorLuminosidad = ((long)valor * A * 10) / ((long)B * Rc * (1024 - valor));
     if(inicio){
 
-      EnviarDatos("2:"+ String(temperatura));
-      EnviarDatos("3:"+ String(valorLuminosidad));
-      EnviarDatos("4:"+ String(humedad));
+      EnviarDatosSensores("2:"+ String(temperatura));
+      EnviarDatosSensores("3:"+ String(valorLuminosidad));
+      EnviarDatosSensores("4:"+ String(humedad));
       inicio = false;
     }
     else{
       if(temperatura != temperaturaActual){
-      EnviarDatos("2:"+ String(temperatura));
+      EnviarDatosSensores("2:"+ String(temperatura));
       }
-      if(valorLuminosidad !=){
-      EnviarDatos("3:"+ String(valorLuminosidad));
+      if(valorLuminosidad != luminosidadActual){
+      EnviarDatosSensores("3:"+ String(valorLuminosidad));
       }
       if(humedad != humedadActual){
-      EnviarDatos("4:"+ String(humedad));
+      EnviarDatosSensores("4:"+ String(humedad));
       }
     }
 
