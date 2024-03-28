@@ -20,6 +20,7 @@ float humedadActual;
 bool temperaturaInicial = true;
 bool luminosidadInicial = true;
 bool humedadInicial = true;
+bool inicio = true;
 
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
@@ -39,6 +40,9 @@ void setup() {
 void EnviarDatos(float valor) {
   Serial.println(valor);
 }
+void EnviarDatosSensores(String valor) {
+  Serial.println(valor);
+}
 
 void estado(String estadoBomba) {
   Serial.println(estadoBomba);
@@ -48,58 +52,63 @@ void mostrarDatosSerial(int comando) {
   switch (comando) {
     case 2:
       if (temperaturaInicial) {
-        EnviarDatos(temperatura);
+        EnviarDatosSensores("tr:2:"+String(temperatura));
         temperaturaInicial = false;
       } else {
         valorLM35 = analogRead(pinLM35);
         temperaturaActual = (valorLM35 * 0.48828125);
         if (temperatura == temperaturaActual) {
-          estado("igual a " + String(temperaturaActual));
+          EnviarDatosSensores("tr:2");
         } else {
-          EnviarDatos(temperaturaActual);
+          EnviarDatosSensores("tr:2:"+String(temperaturaActual));
         }
       }
       break;
 
     case 3:
       if (luminosidadInicial) {
-        EnviarDatos(valorLuminosidad);
+          EnviarDatosSensores("tr:3:"+String(valorLuminosidad));
         luminosidadInicial = false;
       } else {
         valor = analogRead(pinLuminosidad);
         luminosidadActual = ((long)valor * A * 10) / ((long)B * Rc * (1024 - valor));
         if (valorLuminosidad == luminosidadActual) {
-          estado("igual a" + String(luminosidadActual));
+          EnviarDatosSensores("tr:3");
         } else {
-          EnviarDatos(luminosidadActual);
+          EnviarDatosSensores("tr:3:"+String(luminosidadActual));
         }
       }
       break;
 
     case 4:
       if (humedadInicial) {
-        EnviarDatos(humedad);
+        EnviarDatosSensores("tr:4:"+String(humedad));
         humedadInicial = false;
       } else {
         valorHumedad = analogRead(pinSensorHumedad);
         humedadActual = 100 - map(valorHumedad, 0, 1023, 0, 100);
         if (humedad == humedadActual) {
-          estado("igual a" + String(humedadActual));
+          EnviarDatosSensores("tr:4");
         } else {
-          EnviarDatos(humedadActual);
+        EnviarDatosSensores("tr:4:"+String(humedadActual));
         }
       }
       break;
 
     case 5:
-      estado(bombaEncendida ? "Encendido" : "Apagado");
+      estado(bombaEncendida ? "bom:1" : "bom:0");
       break;
   }
 }
 
 void loop() {
   unsigned long currentMillis = millis();
-
+    valorLM35 = analogRead(pinLM35);
+    temperaturaActual = (valorLM35 * 0.48828125);
+    valor = analogRead(pinLuminosidad);
+    luminosidadActual = ((long)valor * A * 10) / ((long)B * Rc * (1024 - valor));
+    valorHumedad = analogRead(pinSensorHumedad);
+    humedadActual = 100 - map(valorHumedad, 0, 1023, 0, 100);
   if (currentMillis - previousMillis >= interval) {
     previousMillis = currentMillis;
 
@@ -111,6 +120,26 @@ void loop() {
 
     valor = analogRead(pinLuminosidad);
     valorLuminosidad = ((long)valor * A * 10) / ((long)B * Rc * (1024 - valor));
+    if(inicio){
+
+      EnviarDatos("2:"+ String(temperatura));
+      EnviarDatos("3:"+ String(valorLuminosidad));
+      EnviarDatos("4:"+ String(humedad));
+      inicio = false;
+    }
+    else{
+      if(temperatura != temperaturaActual){
+      EnviarDatos("2:"+ String(temperatura));
+      }
+      if(valorLuminosidad !=){
+      EnviarDatos("3:"+ String(valorLuminosidad));
+      }
+      if(humedad != humedadActual){
+      EnviarDatos("4:"+ String(humedad));
+      }
+    }
+
+
   }
 
   if (humedad <= 40) {
