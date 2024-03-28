@@ -51,11 +51,11 @@ def insertar_datos_en_bd(sensor_id, valor):
     try:
         fecha = fecha_registro()
         hora = tiempo_registro()
-        print("Insertando datos en la base de datos...")
-        print(f"Sensor ID: {sensor_id}, Valor: {valor}, Fecha: {fecha}, Hora: {hora}")
+        # print("Insertando datos en la base de datos...")
+        # print(f"Sensor ID: {sensor_id}, Valor: {valor}, Fecha: {fecha}, Hora: {hora}")
         cursor.execute("INSERT INTO registros (idSensor, fecha, hora, valor) VALUES (%s, %s, %s, %s)", (sensor_id, fecha, hora, valor))
         conexion.commit()
-        print("Datos insertados correctamente en la base de datos:", valor)  # Mensaje de depuración
+        # print("Datos insertados correctamente en la base de datos:", valor)  # Mensaje de depuración
     except mysql.connector.Error as error:
         print(f"Error al insertar datos: {error}")
         conexion.rollback()
