@@ -8,6 +8,11 @@ int valor;
 const long A = 1000;
 const byte B = 15;
 const byte Rc = 10;
+const byte humedadPlanta1 = 40;
+const byte humedadPlanta2 = 41;
+const byte humedadPlanta3 = 42;
+String dataSerial;
+String plantaSeleccionada;
 
 int valorLM35;
 float temperatura;
@@ -101,6 +106,18 @@ void mostrarDatosSerial(int comando) {
   }
 }
 
+void revisarEstadoPlanta(float humedad, byte humedadPlanta){
+    if (humedad <= humedadPlanta) {
+    digitalWrite(pinRelay, LOW);
+    bombaEncendida = true;
+    bombaApagada = false;
+  } else {
+    digitalWrite(pinRelay, HIGH);
+    bombaEncendida = false;
+    bombaApagada = true;
+  }
+}
+
 void loop() {
   unsigned long currentMillis = millis();
     valorLM35 = analogRead(pinLM35);
@@ -142,15 +159,8 @@ void loop() {
 
   }
 
-  if (humedad <= 40) {
-    digitalWrite(pinRelay, LOW);
-    bombaEncendida = true;
-    bombaApagada = false;
-  } else {
-    digitalWrite(pinRelay, HIGH);
-    bombaEncendida = false;
-    bombaApagada = true;
-  }
+  revisarEstadoPlanta(humedad, humedadPlanta1);
+
 
   lcd.setCursor(0, 0);
   lcd.print("Temperatura:");
@@ -169,7 +179,11 @@ void loop() {
   lcd.print(luminosidadActual);
 
   if (Serial.available() > 0) {
-    int comando = Serial.read() - '0';
+    // leer datos enviados por serial
+    dataSerial = Serial.readString();
+    plantaSeleccionada = dataSerial.substring(0, 3);
+    String opcion = dataSerial.substring(3);
+    int comando = opcion.toInt();
     mostrarDatosSerial(comando);
   }
 }

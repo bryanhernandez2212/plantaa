@@ -32,6 +32,7 @@ def hilo_escucha_para_arduino(q, stop_event):
     while not stop_event.is_set():
         valor = gestion_serial.recibir_datos()
         if valor:
+            print(valor)
             partes = valor.split(":")
             data_inicio = partes[0]
             # verificar los datos enviados desde arduino
@@ -39,29 +40,35 @@ def hilo_escucha_para_arduino(q, stop_event):
                 crud.insertar_datos_en_bd(data_inicio, partes[1])
             if data_inicio == "tr":
                 id_sensor = partes[1]
+                print(len(partes))
                 if len(partes) > 2:
                     # datos enviados despues de una consulta en el menu
                     valor_sensor = partes[2]
                     crud.insertar_datos_en_bd(id_sensor, valor_sensor)
                     if id_sensor == "2":
-                        data = f"Temperatura: {valor_sensor}"
+                        print(f"Temperatura: {valor_sensor}")
                     elif id_sensor == "3":
                         data = f"Luminosida: {valor_sensor}"
                     elif id_sensor == "4":
                         data = f"Humedad: {valor_sensor}"
-                if id_sensor == "2":
+                    time.sleep(1)
+                    q.put(data)
+                if id_sensor == "2" and len(partes) == 2:
                     data = f"Temperatura sigue igual "
-                elif id_sensor == "3":
+                elif id_sensor == "3" and len(partes) == 2:
                     data = f"Luminosida sigue igual "
-                elif id_sensor == "4":
+                elif id_sensor == "4" and len(partes) == 2:
                     data = f"Humedad sigue igual "
+                time.sleep(1)
                 q.put(data)
             if data_inicio == "bom":
                 estado = partes[1]
                 if estado == "1":
+                    print("Estado del riego: Encendido ")
                     data = "Estado del riego: Encendido "
                 else:
                     data = "Estado del riego:Apagado"
+                time.sleep(1)
                 q.put(data)
         else:
             q.put(None)
@@ -73,7 +80,14 @@ def obtener_valor_sensor(sensor):
     # valor = gestion_serial.recibir_datos()
     # return valor
 
-def procesar_opcion(entrada, queue):
+def procesar_opcion(entrada, queue, planta: str):
+    if planta == "a":
+        planta = "pt1"
+    elif planta == "b":
+        planta = "pt2"
+    else:
+        planta = "pt3"
+    
     if entrada == '1':
         mostrar_lista_plantas()
         planta_seleccionada = input("Selecciona la planta (a, b, c): ")
@@ -81,15 +95,19 @@ def procesar_opcion(entrada, queue):
 
     elif entrada == '2':
         print("Solicitando temperatura...")
+        entrada = f"{planta}:{entrada}"
         obtener_valor_sensor(entrada)
-        data = queue.get()
-        if data:
-            print(data)
-        else:
-            print("No se recibió respuesta desde Arduino")
+        time.sleep(1)
+        return
+        # data = queue.get()
+        # if data:
+        #     print(data)
+        # else:
+        #     print("No se recibió respuesta desde Arduino")
 
     elif entrada == '3':
         print("Solicitando luminosidad...")
+        entrada = f"{planta}:{entrada}"
         obtener_valor_sensor(entrada)
         data = queue.get()
         if data:
@@ -99,6 +117,7 @@ def procesar_opcion(entrada, queue):
 
     elif entrada == '4':
         print("Solicitando humedad...")
+        entrada = f"{planta}:{entrada}"
         obtener_valor_sensor(entrada)
         data = queue.get()
         if data:
@@ -108,6 +127,7 @@ def procesar_opcion(entrada, queue):
 
     elif entrada == '5':
         print("Solicitando estado del riego...")
+        entrada = f"{planta}:{entrada}"
         obtener_valor_sensor(entrada)
         data = queue.get()
         if data:
@@ -133,6 +153,7 @@ def menu_sensores():
         planta_seleccionada = input("Selecciona la planta (a, b, c): ")
         if planta_seleccionada in ['a', 'b', 'c']:
             print(f"Seleccionaste la planta {planta_seleccionada}")
+            
             break
         else:
             print("Planta no válida. Por favor, selecciona una opción válida.")
@@ -149,7 +170,7 @@ def menu_sensores():
     entrada = input("Captura una opcion: ")
 
     while entrada != 's':
-        procesar_opcion(entrada, q)
+        procesar_opcion(entrada, q, planta_seleccionada)
         print(" ")
         print(menu)
         entrada = input("Captura una opcion: ")
